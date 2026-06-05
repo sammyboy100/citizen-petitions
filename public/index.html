@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VozCiudadana — Sugerencias Ciudadanas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand" onclick="showView('home')">
+        <div class="brand-icon">⚖</div>
+        <div>
+          <span class="brand-name">VozCiudadana</span>
+          <span class="brand-tagline">Plataforma de Sugerencias Ciudadanas</span>
+        </div>
+      </div>
+      <nav>
+        <button class="nav-btn active" id="nav-home" onclick="showView('home')">Inicio</button>
+        <button class="nav-btn" id="nav-create" onclick="showView('create')">Nueva Sugerencia</button>
+        <button class="nav-btn" id="nav-about" onclick="showView('about')">¿Cómo funciona?</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT AREA -->
+  <main id="app">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- VIEW: HOME — Lista de Sugerencias                          -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div id="view-home" class="view active">
+      <section class="hero">
+        <div class="hero-content">
+          <p class="hero-eyebrow">República del Perú · Participación Ciudadana</p>
+          <h1 class="hero-title">Tu voz impulsa<br><em>el cambio</em></h1>
+          <p class="hero-sub">Presenta tu sugerencia, recoge 25,000 firmas en 90 días y llévala ante las autoridades reguladoras.</p>
+          <button class="btn-primary hero-cta" onclick="showView('create')">
+            Presentar una Sugerencia
+          </button>
+        </div>
+        <div class="hero-stats" id="hero-stats">
+          <div class="stat-card">
+            <span class="stat-num" id="stat-active">—</span>
+            <span class="stat-label">Activas</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="stat-completed">—</span>
+            <span class="stat-label">Completadas</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="stat-signatures">—</span>
+            <span class="stat-label">Firmas totales</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filtros -->
+      <section class="filters-bar">
+        <div class="filters-inner">
+          <select id="filter-status" onchange="loadSuggestions()" class="filter-select">
+            <option value="">Todas las sugerencias</option>
+            <option value="activa" selected>Activas</option>
+            <option value="completada">Completadas</option>
+            <option value="vencida">Vencidas</option>
+          </select>
+          <select id="filter-category" onchange="loadSuggestions()" class="filter-select">
+            <option value="">Todas las categorías</option>
+            <option value="infraestructura">Infraestructura</option>
+            <option value="educacion">Educación</option>
+            <option value="salud">Salud</option>
+            <option value="medioambiente">Medio Ambiente</option>
+            <option value="seguridad">Seguridad</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Grid de sugerencias -->
+      <section class="suggestions-grid-section">
+        <div id="suggestions-grid" class="suggestions-grid"></div>
+        <div id="suggestions-empty" class="empty-state hidden">
+          <span class="empty-icon">📋</span>
+          <p>No hay sugerencias en esta categoría.</p>
+        </div>
+        <div id="suggestions-loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando sugerencias...</p>
+        </div>
+        <div id="pagination" class="pagination hidden"></div>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- VIEW: DETAIL — Detalle de una Sugerencia                   -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div id="view-detail" class="view">
+      <div class="back-bar">
+        <button class="btn-ghost" onclick="showView('home')">← Volver al inicio</button>
+      </div>
+      <div id="suggestion-detail-content" class="detail-container"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- VIEW: CREATE — Formulario de nueva sugerencia              -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div id="view-create" class="view">
+      <div class="form-page">
+        <div class="form-header">
+          <h2>Nueva Sugerencia Ciudadana</h2>
+          <p>Complete el formulario con los detalles de su propuesta. Una vez publicada, los ciudadanos podrán firmarla durante 90 días.</p>
+        </div>
+
+        <form id="suggestion-form" class="suggestion-form" onsubmit="submitSuggestion(event)">
+
+          <div class="form-group">
+            <label for="f-title">Título de la sugerencia <span class="required">*</span></label>
+            <input type="text" id="f-title" name="title" required minlength="10" maxlength="200"
+              placeholder="Ej: Construcción de parque en el distrito X" />
+            <span class="char-count" id="title-count">0 / 200</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-category">Categoría <span class="required">*</span></label>
+              <select id="f-category" name="category" required>
+                <option value="">Seleccione una categoría</option>
+                <option value="infraestructura">🏗 Infraestructura</option>
+                <option value="educacion">📚 Educación</option>
+                <option value="salud">🏥 Salud</option>
+                <option value="medioambiente">🌿 Medio Ambiente</option>
+                <option value="seguridad">🛡 Seguridad</option>
+                <option value="otro">📌 Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="f-description">Descripción detallada <span class="required">*</span></label>
+            <textarea id="f-description" name="description" required minlength="50" rows="6"
+              placeholder="Explique con detalle el problema, la solución propuesta y el impacto esperado..."></textarea>
+            <span class="char-count" id="desc-count">0 caracteres (mínimo 50)</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-author-name">Su nombre completo <span class="required">*</span></label>
+              <input type="text" id="f-author-name" name="authorName" required
+                placeholder="Juan Carlos Pérez" />
+            </div>
+            <div class="form-group">
+              <label for="f-author-email">Su correo electrónico <span class="required">*</span></label>
+              <input type="email" id="f-author-email" name="authorEmail" required
+                placeholder="juan@ejemplo.com" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Archivos adjuntos <span class="optional">(opcional, máx. 5 archivos · 10 MB c/u)</span></label>
+            <div class="drop-zone" id="drop-zone" onclick="document.getElementById('f-files').click()">
+              <div class="drop-icon">📎</div>
+              <p>Haga clic o arrastre sus archivos aquí</p>
+              <p class="drop-hint">PDF, Word, imágenes (JPG, PNG)</p>
+              <input type="file" id="f-files" name="attachments" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.txt" class="hidden" onchange="handleFileSelect(this)" />
+            </div>
+            <div id="file-list" class="file-list"></div>
+          </div>
+
+          <div id="form-error" class="form-error hidden"></div>
+          <div id="form-success" class="form-success hidden"></div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-ghost" onclick="showView('home')">Cancelar</button>
+            <button type="submit" class="btn-primary" id="submit-btn">
+              <span class="btn-text">Publicar Sugerencia</span>
+              <span class="btn-spinner hidden">⏳</span>
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- VIEW: ABOUT                                                -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div id="view-about" class="view">
+      <div class="about-page">
+        <h2>¿Cómo funciona?</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <h3>Presenta tu sugerencia</h3>
+            <p>Completa el formulario con el título, descripción detallada y categoría de tu propuesta. Puedes adjuntar documentos de respaldo.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <h3>Recoge firmas ciudadanas</h3>
+            <p>Tu sugerencia permanece activa durante <strong>90 días</strong>. Comparte el enlace para que otros ciudadanos puedan apoyarla con su firma.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <h3>Alcanza la meta</h3>
+            <p>Si tu sugerencia reúne <strong>25,000 firmas</strong> antes de vencer, queda marcada como completada y lista para ser evaluada por la entidad reguladora.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <h3>Evaluación institucional</h3>
+            <p>Las sugerencias que alcancen la meta son enviadas automáticamente a la entidad reguladora correspondiente para su análisis y respuesta. (Próxima fase)</p>
+          </div>
+        </div>
+        <div class="about-faq">
+          <h3>Preguntas frecuentes</h3>
+          <div class="faq-item">
+            <strong>¿Necesito crear una cuenta?</strong>
+            <p>No. En esta primera fase, solo necesitas proporcionar tu nombre y correo electrónico para firmar o publicar una sugerencia.</p>
+          </div>
+          <div class="faq-item">
+            <strong>¿Puedo firmar más de una sugerencia?</strong>
+            <p>Sí, puedes firmar cuantas sugerencias desees, pero solo una vez por sugerencia con el mismo correo electrónico.</p>
+          </div>
+          <div class="faq-item">
+            <strong>¿Qué pasa si la sugerencia no llega a las 25,000 firmas?</strong>
+            <p>La sugerencia vence y no es enviada a la entidad reguladora. Podrás volver a presentarla en un nuevo ciclo.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- SIGN MODAL -->
+  <div id="sign-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <button class="modal-close" onclick="closeSignModal()">✕</button>
+      <h3 class="modal-title">Firmar Sugerencia</h3>
+      <p class="modal-subtitle" id="modal-suggestion-title"></p>
+
+      <form id="sign-form" onsubmit="submitSignature(event)">
+        <div class="form-group">
+          <label for="signer-name">Su nombre completo <span class="required">*</span></label>
+          <input type="text" id="signer-name" required minlength="3"
+            placeholder="María López García" />
+        </div>
+        <div class="form-group">
+          <label for="signer-email">Su correo electrónico <span class="required">*</span></label>
+          <input type="email" id="signer-email" required
+            placeholder="maria@ejemplo.com" />
+        </div>
+
+        <div class="modal-notice">
+          <p>🔒 Al firmar, confirma que es un ciudadano que apoya esta sugerencia. Solo se permite una firma por dirección de correo.</p>
+        </div>
+
+        <div id="sign-error" class="form-error hidden"></div>
+        <div id="sign-success" class="form-success hidden"></div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-ghost" onclick="closeSignModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" id="sign-submit-btn">
+            <span class="btn-text">✍ Firmar Ahora</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>⚖ VozCiudadana · Plataforma de Participación Ciudadana</span>
+      <span>Desarrollado con patrones Facade · Proxy · Decorator</span>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
